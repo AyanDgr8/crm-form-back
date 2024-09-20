@@ -1,7 +1,7 @@
 // src/routes/router.js
 
 import express from 'express';
-import { getLastUpdatedCustomers, searchCustomers, updateCustomer, deleteCustomer } from '../controllers/customers.js';
+import { getLastUpdatedCustomers, searchCustomers, updateCustomer } from '../controllers/customers.js';
 
 const router = express.Router();
 
@@ -12,9 +12,12 @@ router.get('/customers', getLastUpdatedCustomers);
 router.get('/customers/search', searchCustomers); 
 
 // Route to update a customer by ID
-router.put('/customers/:id', updateCustomer);
+router.put('/customers/use/:id', updateCustomer);
 
 // Route to delete a customer by ID
-router.delete('/customers/:id', deleteCustomer);
+// router.delete('/customers/:id', deleteCustomer);
+
+// // Route to implement customer 
+// router.post('/customers/upload', )
 
 export default router;
