@@ -15,7 +15,7 @@ const server = app.listen(process.env.PORT, () => {
   console.log(`⚙️  Server is running at port : ${process.env.PORT}`.cyan.bold);
 });
 
-process.title = 'MultyComm Form';
+process.title = 'MultyComm CRM';
 
 // Graceful shutdown function
 const gracefulShutdown = async () => {

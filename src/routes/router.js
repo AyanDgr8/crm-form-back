@@ -1,12 +1,12 @@
 // src/routes/router.js
 
 import express from 'express';
-import { getLastUpdatedCustomers, searchCustomers, updateCustomer } from '../controllers/customers.js';
+import { getLastUpdatedCustomers, searchCustomers, updateCustomer, getAllCustomers } from '../controllers/customers.js';
 
 const router = express.Router();
 
 // Route to get latest 5 customers
-router.get('/customers', getLastUpdatedCustomers);
+router.get('/customers', getAllCustomers);
 
 // Route to search customers
 router.get('/customers/search', searchCustomers); 
