@@ -1,7 +1,7 @@
 // src/routes/router.js
 
 import express from 'express';
-import { getLastUpdatedCustomers, searchCustomers, updateCustomer, getAllCustomers } from '../controllers/customers.js';
+import { gethistoryCustomer, searchCustomers, updateCustomer, historyCustomer, getAllCustomers } from '../controllers/customers.js';
 
 const router = express.Router();
 
@@ -13,6 +13,12 @@ router.get('/customers/search', searchCustomers);
 
 // Route to update a customer by ID
 router.put('/customers/use/:id', updateCustomer);
+
+// Route to post the updated history 
+router.post('/customers/log-change', historyCustomer);
+
+// Route to see the updated history 
+router.get('/customers/log-change/:id', gethistoryCustomer);
 
 // Route to delete a customer by ID
 // router.delete('/customers/:id', deleteCustomer);
