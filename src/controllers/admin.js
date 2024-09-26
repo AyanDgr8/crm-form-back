@@ -1,6 +1,5 @@
 // src/controllers/admin.js
 
-
 import connectDB from '../db/index.js';  
 
 // Function to make a user an admin based on their username
@@ -12,6 +11,7 @@ export const makeAdminByUsername = async (username) => {
 
     try {
         const connection = await connectDB();
+        
         const sqlUpdate = "UPDATE users SET role = 'Admin' WHERE username = ?";
         const [result] = await connection.query(sqlUpdate, [username]);
 

@@ -31,6 +31,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/", router);
 
+
+
 // Middleware for handling 404 errors
 app.use(notFoundHandler);
 
