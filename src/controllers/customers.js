@@ -47,6 +47,8 @@ export const searchCustomers = async (req, res) => {
   }
 };
 
+// *****************
+
 export const getAllCustomers = async (req, res) => {
   try {
       const connection = await connectDB();
@@ -60,6 +62,7 @@ export const getAllCustomers = async (req, res) => {
   }
 };
 
+// *****************
 
 export const getLastUpdatedCustomers = async (req, res) => {
     try {
@@ -74,7 +77,7 @@ export const getLastUpdatedCustomers = async (req, res) => {
     }
 };
 
-
+// *****************
 
 export const updateCustomer = async (req, res) => {
   const customerId = req.params.id;
@@ -125,11 +128,12 @@ export const updateCustomer = async (req, res) => {
   }
 };
 
+// *****************
 
 // Function to insert change log entries
 const insertChangeLog = async (connection, customerId, C_unique_id, changes) => {
   for (const change of changes) {
-    const { field, old_value, new_value } = change; // No date_of_birth here
+    const { field, old_value, new_value } = change; 
 
     // Prepare the insert query
     const changeLogQuery = `
@@ -141,12 +145,14 @@ const insertChangeLog = async (connection, customerId, C_unique_id, changes) => 
       customerId,
       C_unique_id,
       field,
-      old_value || null, // Use null if old_value is undefined
-      new_value || null, // Use null if new_value is undefined
+      old_value || null, 
+      new_value || null, 
       new Date(), // Current timestamp
     ]);
   }
 };
+
+// *****************
 
 // Function to fetch change history for a customer
 const getChangeHistory = async (connection, customerId) => {
@@ -158,6 +164,8 @@ const getChangeHistory = async (connection, customerId) => {
   const [changeHistory] = await connection.execute(fetchHistoryQuery, [customerId]);
   return changeHistory;
 };
+
+// *****************
 
 // Main function to handle logging and fetching change history
 export const historyCustomer = async (req, res) => {
@@ -186,6 +194,8 @@ export const historyCustomer = async (req, res) => {
     res.status(500).json({ message: 'Failed to log change history' });
   }
 };
+
+// *****************
 
 // Function to handle fetching change history
 export const gethistoryCustomer = async (req, res) => {

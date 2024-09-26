@@ -2,6 +2,9 @@
 
 import express from 'express';
 import { gethistoryCustomer, searchCustomers, updateCustomer, historyCustomer, getAllCustomers } from '../controllers/customers.js';
+import { loginCustomer, logoutCustomer, registerCustomer } from '../controllers/sign.js';
+import { authenticateToken } from '../middlewares/auth.js';
+import { makeAdminByUsername } from '../controllers/admin.js';
 
 const router = express.Router();
 
@@ -20,10 +23,25 @@ router.post('/customers/log-change', historyCustomer);
 // Route to see the updated history 
 router.get('/customers/log-change/:id', gethistoryCustomer);
 
-// Route to delete a customer by ID
-// router.delete('/customers/:id', deleteCustomer);
 
-// // Route to implement customer 
-// router.post('/customers/upload', )
+// Route for user registration
+router.post('/register', registerCustomer);
+
+// Route for user login
+router.post('/login', loginCustomer);
+
+// Route for user logout
+router.post('/logout', authenticateToken, logoutCustomer);
+
+router.post('/promote-admin', async (req, res) => {
+    const { username } = req.body;
+    if (!username) {
+        return res.status(400).json({ success: false, message: "Username is required." });
+    }
+
+    const result = await makeAdminByUsername(username);
+    return res.status(result.success ? 200 : 400).json(result);
+});
+
 
 export default router;
