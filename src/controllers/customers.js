@@ -67,21 +67,21 @@ export const getAllCustomers = async (req, res) => {
 export const updateCustomer = async (req, res) => {
   const customerId = req.params.id;
   const { first_name, last_name, 
-    phone_no, email_id, date_of_birth, 
+    phone_no, email_id,
     address, company_name, contact_type, 
     source, disposition, agent_name } = req.body;
 
   try {
     const connection = await connectDB(); 
 
-    // Format the date_of_birth to 'YYYY-MM-DD' if it exists
-    const formattedDOB = date_of_birth ? new Date(date_of_birth).toISOString().split('T')[0] : null;
+    // // Format the date_of_birth to 'YYYY-MM-DD' if it exists
+    // const formattedDOB = date_of_birth ? new Date(date_of_birth).toISOString().split('T')[0] : null;
 
     const query = `
       UPDATE customers 
       SET first_name = ?, last_name = ?, 
           phone_no = ?, email_id = ?, 
-          date_of_birth = ?, address = ?, 
+          address = ?, 
           company_name = ?, contact_type = ?, 
           source = ?, disposition = ?, 
           agent_name = ? 
@@ -93,7 +93,7 @@ export const updateCustomer = async (req, res) => {
       last_name || null,
       phone_no || null,
       email_id || null,
-      formattedDOB || null,
+      // formattedDOB || null,
       address || null,
       company_name || null,
       contact_type || null,
@@ -122,7 +122,7 @@ const insertChangeLog = async (connection, customerId, C_unique_id, changes) => 
 
     // Prepare the insert query
     const changeLogQuery = `
-      INSERT INTO customer_change_log (customer_id, C_unique_id, field, old_value, new_value, changed_at) 
+      INSERT INTO updates_customer (customer_id, C_unique_id, field, old_value, new_value, changed_at) 
       VALUES (?, ?, ?, ?, ?, ?)`;
 
     // Execute the query
@@ -142,7 +142,7 @@ const insertChangeLog = async (connection, customerId, C_unique_id, changes) => 
 // Function to fetch change history for a customer
 const getChangeHistory = async (connection, customerId) => {
   const fetchHistoryQuery = `
-    SELECT * FROM customer_change_log 
+    SELECT * FROM updates_customer 
     WHERE customer_id = ? 
     ORDER BY changed_at DESC`;
 
@@ -207,89 +207,25 @@ export const gethistoryCustomer = async (req, res) => {
 };
 
 
-// **********
+// ************
 
-// Function to insert custom fields for a customer
-const insertCustomFields = async (connection, user_id, customFields) => {
-  const insertQuery = `
-    INSERT INTO custom_fields (user_id, field_name, field_value) 
-    VALUES (?, ?, ?)`;
-
-  for (const field of customFields) {
-    const { field_name, field_value } = field;
-
-    // Execute the insert query
-    await connection.execute(insertQuery, [
-      user_id,
-      field_name,
-      field_value,
-    ]);
-  }
-};
-
-// *****************
-
-// Function to handle adding custom fields
-export const addCustomFields = async (req, res) => {
-  const { user_id, customFields } = req.body; 
-
-  // Validate input
-  if (!user_id || !Array.isArray(customFields)) {
-    return res.status(400).json({ message: 'Invalid request data' });
-  }
+export const viewCustomer = async (req, res) => {
+  const uniqueId = req.params.uniqueId; // Get the unique customer ID from the request parameters
 
   try {
-    const connection = await connectDB();
+    const connection = await connectDB(); // Connect to the database
 
-    // Insert the custom fields for the user
-    await insertCustomFields(connection, user_id, customFields);
+    // SQL query to retrieve customer details by unique ID
+    const query = `SELECT * FROM customers WHERE C_unique_id = ?`;
+    const [rows] = await connection.execute(query, [uniqueId]);
 
-    res.status(200).json({ message: 'Custom fields added successfully!' });
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    res.status(200).json(rows[0]); // Return the first (and should be only) customer found
   } catch (error) {
-    console.error('Error adding custom fields:', error);
-    res.status(500).json({ message: 'Failed to add custom fields' });
+    console.error('Error fetching customer details:', error);
+    res.status(500).json({ message: 'Failed to fetch customer details' });
   }
-};
-
-// *****************
-
-// Function to update custom fields and log changes
-const updateCustomFields = async (connection, user_id, changes) => {
-  for (const change of changes) {
-    const { field_name, old_value, new_value } = change;
-
-    // Log the change (assuming you have this function defined)
-    await insertChangeLog(connection, user_id, [
-      { field: field_name, old_value, new_value }
-    ]);
-
-    // Update the custom field in the database
-    const updateQuery = `
-      UPDATE custom_fields 
-      SET field_value = ? 
-      WHERE user_id = ? AND field_name = ?`;
-
-    await connection.execute(updateQuery, [new_value, user_id, field_name]);
-  }
-};
-
-// *****************
-
-// Function to retrieve custom fields by user ID
-export const getCustomFieldsByCustomerId = async (user_id) => {
-    if (!user_id) {
-        console.error("User ID is required to fetch custom fields.");
-        return null;
-    }
-
-    try {
-        const connection = await connectDB();
-        const sqlQuery = "SELECT * FROM custom_fields WHERE user_id = ?"; 
-        const [customFields] = await connection.query(sqlQuery, [user_id]);
-
-        return customFields; // Return the custom fields or an empty array if none found
-    } catch (error) {
-        console.error("Error fetching custom fields:", error);
-        throw error; // Throw the error to be handled in the route
-    }
 };

@@ -91,3 +91,26 @@ export const logoutCustomer = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+
+// Fetch Current User
+export const fetchCurrentUser = async (req, res) => {
+    const userId = req.user.userId;  // Assuming you have middleware that attaches user info to req
+
+    try {
+        const connection = await connectDB();
+
+        // Retrieve the user's information based on their ID
+        const [user] = await connection.query('SELECT id, username, email, role FROM users WHERE id = ?', [userId]);
+        
+        if (user.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Send success response with user information
+        res.status(200).json(user[0]);
+    } catch (error) {
+        console.error('Error fetching current user:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
