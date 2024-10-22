@@ -13,8 +13,12 @@ export const searchCustomers = async (req, res) => {
       const sql = `
           SELECT * FROM customers 
           WHERE first_name LIKE ? 
+          OR middle_name LIKE ? 
           OR last_name LIKE ? 
-          OR phone_no LIKE ?
+          OR gender LIKE ? 
+          OR phone_no_primary LIKE ?
+          OR whatsapp_num LIKE ?
+          OR phone_no_secondary LIKE ?
           OR email_id LIKE ?
           OR C_unique_id LIKE ?
           OR agent_name LIKE ?
@@ -35,7 +39,11 @@ export const searchCustomers = async (req, res) => {
           searchParam,   
           searchParam,  
           searchParam,  
-          searchParam   
+          searchParam,  
+          searchParam,    
+          searchParam,   
+          searchParam,  
+          searchParam  
       ]);
 
       results = rows;
@@ -65,23 +73,29 @@ export const getAllCustomers = async (req, res) => {
 // *****************
 
 export const updateCustomer = async (req, res) => {
-  const customerId = req.params.id;
-  const { first_name, last_name, 
-    phone_no, email_id,
-    address, company_name, contact_type, 
-    source, disposition, agent_name } = req.body;
+  const C_unique_id = req.params.id;
+  const {
+    first_name, middle_name, last_name,
+    phone_no_primary, whatsapp_num, phone_no_secondary, 
+    email_id, gender, address, country, company_name, 
+    contact_type, source, disposition, agent_name,
+  } = req.body;
 
   try {
     const connection = await connectDB(); 
 
     // // Format the date_of_birth to 'YYYY-MM-DD' if it exists
     // const formattedDOB = date_of_birth ? new Date(date_of_birth).toISOString().split('T')[0] : null;
+    
+    // Validating gender to ensure it's one of the allowed ENUM values
+    const validGender = ['male', 'female','other'];
+    const validatedGender = validGender.includes(gender) ? gender : 'male'; // Default to 'male'
 
     const query = `
-      UPDATE customers 
-      SET first_name = ?, last_name = ?, 
-          phone_no = ?, email_id = ?, 
-          address = ?, 
+      UPDATE customers  
+      SET first_name = ?, middle_name = ?, last_name = ?, 
+          phone_no_primary = ?, whatsapp_num = ?, phone_no_secondary = ?, 
+          email_id = ?, gender = ?, address = ?, country = ?,
           company_name = ?, contact_type = ?, 
           source = ?, disposition = ?, 
           agent_name = ? 
@@ -89,22 +103,36 @@ export const updateCustomer = async (req, res) => {
 
     // Ensure undefined values are converted to null before executing the query
     const params = [
-      first_name || null,
-      last_name || null,
-      phone_no || null,
-      email_id || null,
+      first_name !== undefined ? first_name : null,
+      middle_name !== undefined ? middle_name : null,
+      last_name !== undefined ? last_name : null,
+      phone_no_primary !== undefined ? phone_no_primary : null,
+      whatsapp_num !== undefined ? whatsapp_num : null,
+      phone_no_secondary !== undefined ? phone_no_secondary : null,
+      email_id !== undefined ? email_id : null,
+      validatedGender, // Already validated above
+      address !== undefined ? address : null,
+      country !== undefined ? country : null,
+      company_name !== undefined ? company_name : null,
+      contact_type !== undefined ? contact_type : null,
+      source !== undefined ? source : null,
+      disposition !== undefined ? disposition : null,
+      agent_name !== undefined ? agent_name : null,
+      C_unique_id,
       // formattedDOB || null,
-      address || null,
-      company_name || null,
-      contact_type || null,
-      source || null,
-      disposition || null,
-      agent_name || null,
-      customerId,
     ];
+
+    // Log the SQL and parameters for debugging
+    console.log("Executing SQL:", query);
+    console.log("With parameters:", params);
 
     // Execute the query with sanitized parameters
     const [result] = await connection.execute(query, params);
+
+    // Check if any row was updated
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
 
     res.status(200).json({ message: 'Customer updated successfully!' });
   } catch (error) {
@@ -165,7 +193,7 @@ export const historyCustomer = async (req, res) => {
     const connection = await connectDB();
 
     // Insert change log entries
-    await insertChangeLog(connection, customerId, C_unique_id, changes);
+    await insertChangeLog(connection, customerId, C_unique_id,  changes);
 
     // Fetch the change history for the customer
     const changeHistory = await getChangeHistory(connection, customerId);

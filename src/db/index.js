@@ -10,7 +10,8 @@ const connectDB = async () => {
       host: process.env.MYSQL_HOST,
       user: process.env.MYSQL_USER,
       password: process.env.MYSQL_PASSWORD,
-      database: DB_NAME,  // This is your "crm" database
+      database: DB_NAME,  
+      port: process.env.MYSQL_PORT,
       connectTimeout: 10000,
       waitForConnections: true,
       queueLimit: 0

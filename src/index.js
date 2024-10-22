@@ -1,6 +1,8 @@
 // src/index.js
 
 import dotenv from "dotenv";
+import fs from "fs";
+import https from "https";
 import connectDB from "./db/index.js";
 import { app } from './app.js';
 import 'colors';
@@ -11,8 +13,15 @@ dotenv.config({
 
 let connectionInstance;
 
-const server = app.listen(process.env.PORT, () => {
-  console.log(`⚙️  Server is running at port : ${process.env.PORT}`.cyan.bold);
+// Load SSL certificates (update the path to your certificate and key files)
+const sslOptions = {
+  key: fs.readFileSync('ssl/privateKey.key'),   // Replace with actual path to your private key
+  cert: fs.readFileSync('ssl/certificate.crt')  // Replace with actual path to your SSL certificate
+};
+
+// Create HTTPS server
+const server = https.createServer(sslOptions, app).listen(process.env.PORT, () => {
+  console.log(`⚙️  Secure server is running on port: ${process.env.PORT}`.cyan.bold);
 });
 
 process.title = 'MultyComm CRM';
@@ -27,7 +36,7 @@ const gracefulShutdown = async () => {
   }
 
   server.close(() => {
-    console.log('💤 Server closed successfully.'.blue.bold);
+    console.log('💤 Secure server closed successfully.'.blue.bold);
     process.exit(0);
   });
 };
@@ -45,4 +54,3 @@ connectDB()
     console.log("MySQL connection failed !!! ".red.bold, err);
     process.exit(1);
   });
-

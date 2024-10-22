@@ -48,7 +48,7 @@ router.get('/customers/search', searchCustomers);
 router.get('/customer/details/C_unique_id', viewCustomer);
 
 // Route to update a customer by ID
-router.put('/customers/use/:id', updateCustomer);
+router.put('/customer/:id', updateCustomer);
 
 // Route to post the updated history
 router.post('/customers/log-change', historyCustomer);

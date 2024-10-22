@@ -8,8 +8,8 @@ import { errorHandler, notFoundHandler } from './middlewares/errorHandling.js';
 
 const app = express();
 
-// CORS configuration
-const allowedOrigins = [ 'http://localhost:3000'];
+const allowedOrigins = ['http://localhost:3000', 'https://localhost:3000']; // Add frontend URL
+
 
 const corsOptions = {
   origin: function (origin, callback) {
