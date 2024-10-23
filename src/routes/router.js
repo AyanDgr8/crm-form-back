@@ -7,6 +7,7 @@ import {
     updateCustomer,
     historyCustomer,
     getAllCustomers,
+    makeNewRecord,
     viewCustomer
 } from '../controllers/customers.js';
 
@@ -55,6 +56,11 @@ router.post('/customers/log-change', historyCustomer);
 
 // Route to see the updated history
 router.get('/customers/log-change/:id', gethistoryCustomer);
+
+
+// Route to create a new customer record
+router.post('/customer/new', makeNewRecord);
+
 
 // Route to add a custom field
 router.post('/custom-fields', authenticateToken, addCustomField);

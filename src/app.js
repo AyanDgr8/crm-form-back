@@ -1,6 +1,5 @@
 // src/app.js
 
-
 import express from "express";
 import cors from "cors";
 import router from './routes/router.js';
@@ -8,7 +7,7 @@ import { errorHandler, notFoundHandler } from './middlewares/errorHandling.js';
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:3000', 'https://localhost:3000']; // Add frontend URL
+const allowedOrigins = ['http://localhost:3000', 'https://localhost:3000', 'https://10.5.49.183:3000']; // Add frontend URL
 
 
 const corsOptions = {

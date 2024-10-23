@@ -23,6 +23,7 @@ export const searchCustomers = async (req, res) => {
           OR C_unique_id LIKE ?
           OR agent_name LIKE ?
           OR address LIKE ?
+          OR country LIKE ?
           OR contact_type LIKE ?
           OR company_name LIKE ?
           OR disposition LIKE ?
@@ -42,6 +43,7 @@ export const searchCustomers = async (req, res) => {
           searchParam,  
           searchParam,    
           searchParam,   
+          searchParam,  
           searchParam,  
           searchParam  
       ]);
@@ -79,6 +81,7 @@ export const updateCustomer = async (req, res) => {
     phone_no_primary, whatsapp_num, phone_no_secondary, 
     email_id, gender, address, country, company_name, 
     contact_type, source, disposition, agent_name,
+    comment,
   } = req.body;
 
   try {
@@ -98,7 +101,7 @@ export const updateCustomer = async (req, res) => {
           email_id = ?, gender = ?, address = ?, country = ?,
           company_name = ?, contact_type = ?, 
           source = ?, disposition = ?, 
-          agent_name = ? 
+          agent_name = ? , comment = ? 
       WHERE id = ?`;
 
     // Ensure undefined values are converted to null before executing the query
@@ -118,6 +121,7 @@ export const updateCustomer = async (req, res) => {
       source !== undefined ? source : null,
       disposition !== undefined ? disposition : null,
       agent_name !== undefined ? agent_name : null,
+      comment !== undefined ? comment : null,
       C_unique_id,
       // formattedDOB || null,
     ];
@@ -235,13 +239,70 @@ export const gethistoryCustomer = async (req, res) => {
 };
 
 
+// ***************
+
+export const makeNewRecord = async (req, res) => {
+  try {
+    const connection = await connectDB();
+
+    // Fetch the latest C_unique_id and increment it
+    const [latestCustomer] = await connection.query(`
+      SELECT C_unique_id 
+      FROM customers 
+      ORDER BY id DESC 
+      LIMIT 1
+    `);
+
+    let nextUniqueId;
+    if (latestCustomer.length > 0) {
+      const lastUniqueId = latestCustomer[0].C_unique_id;
+      const lastNumericPart = parseInt(lastUniqueId.split('_')[1]); // Extract the numeric part (e.g., 115 from MC_115)
+      nextUniqueId = `MC_${lastNumericPart + 1}`;
+    } else {
+      // If no record exists, start with MC_1
+      nextUniqueId = `MC_1`;
+    }
+
+    // Insert the new record into the database
+    const {
+      first_name, last_name, phone_no_primary, email_id, date_of_birth, address,
+      company_name, contact_type, source, disposition, agent_name, whatsapp_num,
+      phone_no_secondary, country, middle_name, gender, comment
+    } = req.body;
+
+
+    // Ensure the date is in the correct format (YYYY-MM-DD)
+    const formattedDOB = date_of_birth ? new Date(date_of_birth).toISOString().split('T')[0] : null;
+
+    const sql = `
+      INSERT INTO customers 
+      (first_name, last_name, phone_no_primary, email_id, date_of_birth, address,
+      company_name, contact_type, source, disposition, agent_name, C_unique_id,
+      whatsapp_num, phone_no_secondary, country, middle_name, gender, comment)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    await connection.query(sql, [
+      first_name, last_name, phone_no_primary, email_id, formattedDOB, address,
+      company_name, contact_type, source, disposition, agent_name, nextUniqueId,
+      whatsapp_num, phone_no_secondary, country, middle_name, gender, comment
+    ]);
+
+    res.status(201).json({ message: 'Record added successfully', C_unique_id: nextUniqueId });
+  } catch (error) {
+    console.error('Error creating new customer record:', error);
+    res.status(500).json({ message: 'Error adding new record' });
+  }
+};
+
+
 // ************
 
 export const viewCustomer = async (req, res) => {
   const uniqueId = req.params.uniqueId; // Get the unique customer ID from the request parameters
 
   try {
-    const connection = await connectDB(); // Connect to the database
+    const connection = await connectDB(); 
 
     // SQL query to retrieve customer details by unique ID
     const query = `SELECT * FROM customers WHERE C_unique_id = ?`;
